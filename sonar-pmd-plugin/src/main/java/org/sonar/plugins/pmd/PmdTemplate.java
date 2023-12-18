@@ -19,7 +19,7 @@
  */
 package org.sonar.plugins.pmd;
 
-import net.sourceforge.pmd.PMD;
+import net.sourceforge.pmd.PmdAnalysis;
 import net.sourceforge.pmd.PMDConfiguration;
 import net.sourceforge.pmd.Report;
 import net.sourceforge.pmd.RuleSet;
@@ -71,7 +71,7 @@ public class PmdTemplate {
         PMDConfiguration configuration = new PMDConfiguration();
         configuration.setDefaultLanguageVersion(languageVersion(javaVersion));
         configuration.setClassLoader(classloader);
-        configuration.setSourceEncoding(charset.name());
+        configuration.setSourceEncoding(Charset.forName(charset.name()));
         configuration.setFailOnViolation(false);
         configuration.setIgnoreIncrementalAnalysis(true);
         configuration.setReportFormat(EmptyRenderer.NAME);
@@ -106,7 +106,7 @@ public class PmdTemplate {
     }
 
     public Report process(Iterable<InputFile> files, RuleSet ruleset) {
-        return PMD.processFiles(
+        return PmdAnalysis.processFiles(
                 configuration,
                 Collections.singletonList(ruleset),
                 toDataSources(files),

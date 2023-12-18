@@ -28,7 +28,7 @@ import net.sourceforge.pmd.lang.java.ast.ASTMethodDeclaration;
 import net.sourceforge.pmd.lang.java.rule.AbstractJavaRule;
 import net.sourceforge.pmd.properties.PropertyDescriptor;
 import net.sourceforge.pmd.properties.PropertyFactory;
-import net.sourceforge.pmd.properties.constraints.NumericConstraints;
+import net.sourceforge.pmd.properties.NumericConstraints;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 
@@ -59,8 +59,10 @@ public class MaximumMethodsCountCheck extends AbstractJavaRule {
 
     @Override
     public Object visit(ASTClassOrInterfaceBody node, Object data) {
+        //noinspection deprecation
         List<ASTMethodDeclaration> methods = node.findDescendantsOfType(ASTMethodDeclaration.class);
         if (methods.size() > getProperty(propertyDescriptor)) {
+            //noinspection deprecation
             addViolation(data, node);
         }
         return super.visit(node, data);
