@@ -19,7 +19,7 @@
  */
 package org.sonar.plugins.pmd;
 
-import net.sourceforge.pmd.lang.LanguageVersionHandler;
+import net.sourceforge.pmd.lang.LanguageVersion;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -37,11 +37,10 @@ class PmdTemplateTest {
             "1.2", "5", "6", "7", "8", "9", "1.9", "10", "1.10", "11", "1.11", "12", "13", "14", "15", "16", "17", "18"
     })
     void verifyCanHandleJavaLanguageVersion(String javaVersion) {
-        final LanguageVersionHandler languageVersionHandler = PmdTemplate
-                .languageVersion(javaVersion)
-                .getLanguageVersionHandler();
+        final LanguageVersion languageVersion = PmdTemplate
+                .languageVersion(javaVersion);
 
-        assertThat(languageVersionHandler).isNotNull();
+        assertThat(languageVersion).isNotNull();
     }
 
     @Test

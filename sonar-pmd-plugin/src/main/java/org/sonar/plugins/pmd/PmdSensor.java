@@ -28,6 +28,8 @@ import org.sonar.api.batch.sensor.Sensor;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 
+import javax.annotation.Nonnull;
+
 public class PmdSensor implements Sensor {
     private final ActiveRules profile;
     private final PmdExecutor executor;
@@ -66,9 +68,9 @@ public class PmdSensor implements Sensor {
     }
 
     @Override
-    public void execute(SensorContext context) {
+    public void execute(@Nonnull SensorContext context) {
         if (shouldExecuteOnProject()) {
-            for (RuleViolation violation : executor.execute()) {
+            for (RuleViolation violation : executor.execute().getViolations()) {
                 pmdViolationRecorder.saveViolation(violation, context);
             }
         }

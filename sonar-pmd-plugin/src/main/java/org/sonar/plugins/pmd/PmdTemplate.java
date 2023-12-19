@@ -19,20 +19,24 @@
  */
 package org.sonar.plugins.pmd;
 
-import net.sourceforge.pmd.PmdAnalysis;
 import net.sourceforge.pmd.PMDConfiguration;
+import net.sourceforge.pmd.PmdAnalysis;
 import net.sourceforge.pmd.Report;
 import net.sourceforge.pmd.RuleSet;
 import net.sourceforge.pmd.lang.LanguageVersion;
+import net.sourceforge.pmd.lang.document.FileId;
+import net.sourceforge.pmd.lang.document.TextFile;
 import net.sourceforge.pmd.lang.java.JavaLanguageModule;
 import net.sourceforge.pmd.renderers.EmptyRenderer;
-import net.sourceforge.pmd.util.datasource.DataSource;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PmdTemplate {
 
@@ -57,6 +61,7 @@ public class PmdTemplate {
         versions.put("1.16", "16");
         versions.put("1.17", "17");
         versions.put("1.18", "18");
+        versions.put("1.21", "21");
 
         return versions;
     }
@@ -71,7 +76,7 @@ public class PmdTemplate {
         PMDConfiguration configuration = new PMDConfiguration();
         configuration.setDefaultLanguageVersion(languageVersion(javaVersion));
         configuration.setClassLoader(classloader);
-        configuration.setSourceEncoding(Charset.forName(charset.name()));
+        configuration.setSourceEncoding(charset);
         configuration.setFailOnViolation(false);
         configuration.setIgnoreIncrementalAnalysis(true);
         configuration.setReportFormat(EmptyRenderer.NAME);
@@ -97,20 +102,26 @@ public class PmdTemplate {
         return configuration;
     }
 
-    private Collection<DataSource> toDataSources(Iterable<InputFile> files) {
-        final Collection<DataSource> dataSources = new ArrayList<>();
-
-        files.forEach(file -> dataSources.add(new ProjectDataSource(file)));
-
-        return dataSources;
-    }
-
     public Report process(Iterable<InputFile> files, RuleSet ruleset) {
-        return PmdAnalysis.processFiles(
-                configuration,
-                Collections.singletonList(ruleset),
-                toDataSources(files),
-                Collections.emptyList()
-        );
+        try (PmdAnalysis pmd = PmdAnalysis.create(configuration)) {
+            pmd.addRuleSet(ruleset);
+
+            for (InputFile file: files) {
+                TextFile textFile = null;
+                try {
+                    textFile = TextFile.builderForReader(
+                            new InputStreamReader(file.inputStream(), file.charset()),
+                            FileId.fromPathLikeString(file.uri().toString()),
+                            configuration.getForceLanguageVersion()).build();
+                } catch (IOException ignored) {
+                    // ingored
+                }
+                if (textFile != null) {
+                    pmd.files().addFile(textFile);
+                }
+            }
+
+            return pmd.performAnalysisAndCollectReport();
+        }
     }
 }

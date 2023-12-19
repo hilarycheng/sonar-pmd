@@ -72,7 +72,7 @@ public class PmdViolationRecorder {
     private InputFile findResourceFor(RuleViolation violation) {
         return fs.inputFile(
                 fs.predicates().hasAbsolutePath(
-                        violation.getFilename()
+                        violation.getFileId().getFileName()
                 )
         );
     }
